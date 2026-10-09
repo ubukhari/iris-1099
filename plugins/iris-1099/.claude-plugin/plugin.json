@@ -1,0 +1,18 @@
+{
+  "name": "iris-1099",
+  "version": "0.1.0",
+  "description": "Who needs a 1099 for 2025 or 2026 payments, from your own vendor-payments or 1099 report: the $600 and $2,000 thresholds, card and payment-network amounts left to the 1099-K, corporations exempt except attorneys and medical, missing W-9s, and IRIS Taxpayer Portal CSVs in batches of 100. Runs npx --allow-git=root github:agentwares/iris-1099 locally; no account, no network, no LLM calls of its own. Prepared for your review, not tax advice.",
+  "author": {
+    "name": "agentwares",
+    "url": "https://github.com/agentwares"
+  },
+  "homepage": "https://agentwares.vercel.app/1099",
+  "documentationUrl": "https://github.com/agentwares/iris-1099#readme",
+  "repository": "https://github.com/agentwares/iris-1099",
+  "privacyPolicyUrl": "https://agentwares.vercel.app/privacy",
+  "termsOfServiceUrl": "https://agentwares.vercel.app/terms",
+  "supportUrl": "https://agentwares.vercel.app/contact",
+  "license": "MIT",
+  "icon": "./.claude-plugin/icon.png",
+  "keywords": ["1099", "1099-nec", "1099-misc", "1099-k", "iris", "irs", "w-9", "bookkeeping"]
+}

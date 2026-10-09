@@ -1,0 +1,304 @@
+# iris-1099
+
+Who needs a 1099 for your 2025 or 2026 payments, decided from your own books with the IRS sentence
+behind each answer, and the IRIS Taxpayer Portal CSVs to file them. It runs on your machine: TINs
+never leave it and are never printed in full.
+
+```sh
+npx --allow-git=root github:agentwares/iris-1099 vendor-payments.csv
+```
+
+Prepared for your review, not tax advice. Every decision names the IRS sentence it applies, with
+the date that sentence was read, so you can check it.
+
+## The dates that make this season different
+
+| Date                   | What happens                                                                 |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| payments made in 2026  | the 1099-NEC and most 1099-MISC thresholds are $2,000 for the first time     |
+| 19 Nov 2026, 3 p.m. ET | FIRE takes its last filing                                                   |
+| 1 Jan 2027             | IRIS is the only system for information returns, prior years and corrections |
+| 1 Feb 2027             | 1099-NECs for 2026 payments are due (31 January is a Sunday)                 |
+| 31 Mar 2027            | 1099-MISCs for 2026 payments are due, filed electronically                   |
+
+## What it decides
+
+| Rule                                                    | 2025 payments                        | 2026 payments                        |
+| ------------------------------------------------------- | ------------------------------------ | ------------------------------------ |
+| Services by a non-employee, and attorney fees: 1099-NEC | at least $600, box 1                 | at least $2,000, box 1a              |
+| Rents, other income, medical and health care: 1099-MISC | at least $600                        | at least $2,000                      |
+| Royalties: 1099-MISC box 2                              | at least $10                         | at least $10                         |
+| Gross proceeds paid to an attorney: 1099-MISC box 10    | at least $600                        | at least $600                        |
+| Paid by card, PayPal, Venmo or another payment network  | the network's 1099-K, not yours      | the network's 1099-K, not yours      |
+| Paid to a corporation (or an LLC taxed as one)          | exempt, except attorneys and medical | exempt, except attorneys and medical |
+| Merchandise, freight, telephone, storage                | not reported                         | not reported                         |
+| Federal income tax withheld                             | reported whatever the amount         | reported whatever the amount         |
+
+Where the file cannot settle a question, it decides the way that cannot cost a penalty (file) and
+says what to confirm: a missing W-9, an LLC whose tax classification the file does not give, a
+name ending in Inc that has no W-9 to confirm it.
+
+## What it reads
+
+- **A QuickBooks or Xero export**: the 1099 transaction detail, the 1099 summary, or a vendor
+  payments report saved as CSV. Title rows, vendor group headings and Total rows are skipped.
+- **Any CSV** with one row per payment (a payee and an amount, and optionally the payment method,
+  account or category, date, tax ID, entity type, W-9 status and address), or one row per payee
+  with a column per 1099 box. When the headers have other names:
+
+  ```sh
+  npx --allow-git=root github:agentwares/iris-1099 payments.csv --map name=Supplier,amount="Paid out",method="Paid via"
+  ```
+
+- **Your business**, for the IRIS files' payer columns: `--payer payer.json` with `name`, `tin`,
+  `tin_type`, `address1`, `city`, `state`, `zip` and `phone`.
+
+## The IRIS CSVs
+
+One file per form, at most 100 records each ("Each CSV file holds up to 100 records, not including
+the header"), in the column order of the IRS's tax-year-2025 template formatting guidelines, with
+every name, address and amount cleaned to the characters and lengths those guidelines allow. Rows
+the portal would reject (no TIN, no address) are listed with what is missing.
+
+Two things the IRS has not published, said plainly:
+
+- **The TY2026 template.** On 8 October 2026 the newest posted guidelines were for tax year 2025
+  (updated 14 January 2026), and the December 2026 forms add boxes 1b–1d to the 1099-NEC and 13a,
+  13b and 14 to the 1099-MISC. Files for 2026 payments are written in the 2025 layout and named
+  `…_ty2025-layout_…`; check them against the TY2026 template when the portal has it.
+- **The exact header row.** "The IRIS system validates the CSV column header descriptions", and the
+  template itself is handed out behind the portal's login. The header row written here is the
+  guidelines' field names. If the portal refuses it, download the template and pass it with
+  `--template`: the files are then written under its exact headers, every column matched by name.
+
+## A recorded run, on synthetic vendors
+
+Invented businesses and people, invented addresses, and TINs that cannot belong to anyone (every
+SSN has 00 as its middle group, which is never issued, and every EIN starts 00).
+
+<!-- recorded-run -->
+
+```text
+$ npx --allow-git=root github:agentwares/iris-1099 --demo --out iris-1099-demo
+SYNTHETIC demo data: invented vendors, not anyone's books
+
+iris-1099 0.1.0 · 2026 payments · 14 payees in iris-1099-demo/synthetic-vendor-payments-2026.csv
+Prepared for your review, not tax advice.
+
+Thresholds for 2026 payments: 1099-NEC $2,000 (box 1a); 1099-MISC rents $2,000, royalties $10,
+other income $2,000, medical and health care $2,000, gross proceeds paid to an attorney $600.
+
+Needs a 1099 (9)
+  Ridgeback Properties LLC       1099-MISC box 1      $18,000.00  TIN **-***1008
+      $18,000.00 in rents is at least $2,000. [2]
+  Osei & Park LLP                1099-NEC box 1a       $6,500.00  TIN **-***1005
+      $6,500.00 in attorney fees is at least $2,000. [1]
+  Cobalt Field Services LLC      1099-NEC box 1a       $5,200.00  TIN **-***1013
+      $5,200.00 for services is at least $2,000. [1]
+      check: Entity type says LLC without its tax classification: the W-9's line 3 says whether
+      it is taxed as a C or S corporation (exempt for services) or not. [5]
+  Harbor Lane Design LLC         1099-NEC box 1a       $4,800.00  TIN ***-**-1001
+      $4,800.00 for services is at least $2,000. [1]
+  Calder Legal PC                1099-NEC box 1a       $3,000.00  TIN **-***1006
+      $3,000.00 in attorney fees is at least $2,000; attorney fees are reported even to a
+      corporation. [1][6]
+  Tern Street Translation        1099-NEC box 1a       $2,750.00  no TIN on file
+      $2,750.00 for services is at least $2,000. [1]
+      check: No W-9 on file: request one before you file. Without a TIN, backup withholding at
+      24% applies to further payments. [7][8]
+  Juniper Physical Therapy PC    1099-MISC box 6       $2,400.00  TIN **-***1007
+      $2,400.00 in medical and health care is at least $2,000; reported even to a corporation.
+      [2][9]
+  Vela Courier Co                1099-NEC box 1a       $2,050.00  no TIN on file
+      $2,050.00 for services is at least $2,000. [1]
+      check: No TIN in the file: confirm a W-9 is on file, or request one before you file.
+      [7][8]
+      check: No entity type in the file: a W-9 showing a C or S corporation (including an LLC
+      taxed as one) would make services and rents exempt. [5]
+  Ines Calloway                  1099-MISC box 2         $450.00  TIN ***-**-1012
+      $450.00 in royalties is at least $10. [3]
+
+No 1099 from you (5)
+  Brightline Analytics Inc         $12,000.00
+      $12,000.00 for services to a corporation (C corporation): exempt. [5]
+  Dana Whitlock                     $3,200.00
+      $2,200.00 paid by Credit card (Visa): reported on Form 1099-K by the card company or
+      payment network, not on your 1099-NEC or 1099-MISC. [10]
+      $1,000.00 for services is under $2,000, the 2026 threshold; at 2025's $600 it would have
+      needed a 1099-NEC. [1][11]
+  Northwind Office Supply, Inc.     $3,200.00
+      $3,200.00 for merchandise and similar items: not reported. [12]
+  Pixelwright Studio                $2,600.00
+      $2,600.00 paid by PayPal: reported on Form 1099-K by the card company or payment network,
+      not on your 1099-NEC or 1099-MISC, even when the network files no 1099-K because the payee
+      is under its threshold. A personal (friends-and-family) transfer is not a payment-network
+      transaction; if that is how it was paid, mark it so and it counts as yours. [10][13]
+  Quill & Ledger Copywriting        $1,450.00
+      $1,450.00 for services is under $2,000, the 2026 threshold; at 2025's $600 it would have
+      needed a 1099-NEC. [1][11]
+
+Missing W-9s (2)
+  Request a W-9 from each before you file; the 1099 needs its TIN. Without one, backup
+  withholding at 24% applies to further payments.
+  - Tern Street Translation
+  - Vela Courier Co
+
+IRIS Taxpayer Portal CSVs
+  TY2025 layout with Tax Year 2026: the IRS had not posted a TY2026 template when this version
+  was released (latest: TY2025, updated 14 Jan 2026), and the December 2026 forms add boxes
+  1b–1d to the 1099-NEC and 13a, 13b and 14 to the 1099-MISC. Check these files against the
+  TY2026 template in the portal before uploading, or rerun with --template.
+  iris-1099-demo/1099-NEC_2026_ty2025-layout_batch-01-of-01.csv  6 records
+  iris-1099-demo/1099-MISC_2026_ty2025-layout_batch-01-of-01.csv  3 records
+  Fix before upload (the portal rejects a row without these):
+    - Tern Street Translation (1099-NEC): recipient TIN (from the W-9)
+    - Vela Courier Co (1099-NEC): recipient TIN (from the W-9)
+  Changed to fit the IRS formatting guidelines:
+    - Harbor Lane Design LLC: recipient address: removed ","
+
+Dates
+  19 Nov 2026: FIRE takes its last filing (3 p.m. ET); file anything still due through FIRE
+  before then, or use IRIS [14]
+  1 Jan 2027: IRIS becomes the only system for information returns, including prior years and
+  corrections [15]
+  1 Feb 2027: 1099-NEC for 2026 payments due to the IRS (31 January 2027 is a Sunday, so the
+  next business day) [16][17]
+  31 Mar 2027: 1099-MISC for 2026 payments due to the IRS when filed electronically [18]
+
+IRS sentences applied (read 8 Oct 2026)
+  [1] "File Form 1099-NEC, Nonemployee Compensation, for each person in the course of your
+  business during the year to whom you have paid at least $2,000 in: 1. Services performed by
+  someone who is not your employee (including parts and materials) (box 1a); or 2. Payments to
+  an attorney (box 1a)."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [2] "At least $2,000 in: 1. Rents (box 1); 2. Prizes and awards, including certain
+  non-government grants (box 3); 3. Other income payments (box 3); … 5. Medical and health care
+  payments (box 6); …"
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [3] "At least $10 in royalties (see the instructions for box 2) …"
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [4] "At least $600 in gross proceeds paid to an attorney (box 10) (see Payments to attorneys,
+  later)."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [5] "Generally, payments to a corporation (including a limited liability company (LLC) that is
+  treated as a C or S corporation). However, see Reportable payments to corporations, earlier."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [6] "The exemption from reporting payments made to corporations does not apply to payments for
+  legal services."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [7] "If the recipient is a U.S. person (including a U.S. resident alien), the IRS suggests
+  that you request the recipient complete Form W-9, Request for Taxpayer Identification Number
+  and Certification; …"
+      Publication 1099 (2026), General Instructions for Certain Information Returns, https://www.irs.gov/pub/irs-pdf/p1099.pdf
+  [8] "Interest …, dividends, rents, royalties, commissions, nonemployee compensation, and
+  certain other payments … may be subject to backup withholding at a 24% rate."
+      Publication 1099 (2026), General Instructions for Certain Information Returns, https://www.irs.gov/pub/irs-pdf/p1099.pdf
+  [9] "The exemption from issuing Form 1099-MISC to a corporation does not apply to payments for
+  medical or health care services provided by corporations, including professional
+  corporations."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [10] "Payments made with a credit card or payment card and certain other types of payments,
+  including third-party network transactions, must be reported on Form 1099-K by the payment
+  settlement entity under section 6050W and are not subject to reporting on Form 1099-MISC or
+  Form 1099-NEC."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [11] "For tax years beginning after 2025, the minimum threshold amount for reporting certain
+  payments required to be reported on certain information returns and/or perform backup
+  withholding on those payments increased to $2,000 and may be adjusted for inflation beginning
+  in calendar year 2027."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [12] "Payments for merchandise, telegrams, telephone, freight, storage, and similar items."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [13] "For purposes of determining whether payments are subject to reporting under section
+  6050W, rather than section 6041 or 6041A, the de minimis threshold, discussed later under Box
+  1a, is disregarded."
+      Instructions for Form 1099-K (Rev. December 2026), https://www.irs.gov/instructions/i1099k
+  [14] "Nov. 19, 2026, at 3 p.m. ET: Last day to file information returns through the FIRE
+  system."
+      Filing Information Returns Electronically (FIRE), https://www.irs.gov/e-file-providers/filing-information-returns-electronically-fire
+  [15] "IRIS will be the only information returns electronic filing system, including current
+  year, prior year, or corrections, after Jan. 1, 2027."
+      Filing Information Returns Electronically (FIRE), https://www.irs.gov/e-file-providers/filing-information-returns-electronically-fire
+  [16] "Section 6071(c) requires you to file Form 1099-NEC on or before January 31, using either
+  paper or electronic filing procedures."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [17] "If any date shown falls on a Saturday, Sunday, or legal holiday in the District of
+  Columbia or where the return is to be filed, the due date is the next business day."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [18] "File Form 1099-MISC by February 28, if you file on paper, or March 31, if you file
+  electronically."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+  [19] "Each CSV file holds up to 100 records, not including the header. You may submit an
+  unlimited number of templates."
+      Information Returns Intake System (IRIS) FAQs, https://www.irs.gov/pub/irs-efile/info-returns-intake-system-faqs.pdf
+  [20] "The IRIS system validates the CSV column header descriptions. We recommend you download
+  the newest templates to avoid errors when uploading CSV Files."
+      Information Returns Intake System (IRIS) FAQs, https://www.irs.gov/pub/irs-efile/info-returns-intake-system-faqs.pdf
+  [21] "New boxes 1b and 13a. P.L. 119-21, section 70201, requires the reporting of cash tips. …
+  New boxes 1c and 13b. Use the Treasury Tipped Occupation Code(s) to identify the tipped
+  occupation(s) for Forms 1099-NEC and 1099-MISC. … New boxes 1d and 14. P.L. 119-21, Section
+  70202(a), requires the reporting of overtime compensation."
+      Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026), https://www.irs.gov/instructions/i1099mec
+
+Prepared for your review, not tax advice.
+
+Keep every client's 1099 season — W-9 status, decisions, IRIS batch receipts — in one place. Not
+built yet: $15 per client per season, $49 minimum, built only if enough bookkeepers ask by 1
+December 2026. Count me in: https://agentwares.vercel.app/1099/waitlist/cli
+(exit 0)
+
+$ ls iris-1099-demo
+1099-MISC_2026_ty2025-layout_batch-01-of-01.csv
+1099-NEC_2026_ty2025-layout_batch-01-of-01.csv
+LAYOUT.txt
+synthetic-vendor-payments-2026.csv
+```
+
+<!-- /recorded-run -->
+
+## For agents: a local MCP server
+
+```sh
+claude mcp add iris-1099 -- npx -y --allow-git=root github:agentwares/iris-1099 mcp
+```
+
+One tool, `iris1099_check_payees`: give it the path of a report on the machine and the payment
+year, and it returns every decision with its reason and IRS citation, the missing W-9s, and what the
+IRIS files would hold. It reads the file and nothing else, writes nothing, and returns TINs as their
+last four digits. The IRIS CSVs, which need the full TINs, are written by the CLI in a terminal.
+
+## In Claude Code
+
+```text
+/plugin marketplace add agentwares/iris-1099
+/plugin install iris-1099@iris-1099
+```
+
+Then `/iris-1099:iris-1099 vendor-payments.csv`. The skill pre-approves no tool; Claude Code asks
+before it runs the command.
+
+## What it reads and sends
+
+It reads the file you name and writes the IRIS CSVs into `iris-1099-<year>` (or `--out`), with
+owner-only permissions. It makes no network request, calls no LLM, has no telemetry and needs no
+account. TINs are written only into those CSVs; the screen, `--json` and the MCP tool show the
+last four digits. Delete the CSVs once the forms are filed.
+
+## Keep every client's 1099 season in one place
+
+A hosted season record for bookkeepers (each client's W-9 status, the decisions, the IRIS batch
+receipts, carried into next year) is not built yet. It would cost $15 per client per season, $49
+minimum, and it gets built only if enough bookkeepers ask by 1 December 2026: the CLI's last line
+links to the count, and so does [agentwares.vercel.app/1099](https://agentwares.vercel.app/1099).
+
+## Sources (read 8 October 2026)
+
+- [Instructions for Forms 1099-MISC and 1099-NEC (Rev. December 2026)](https://www.irs.gov/instructions/i1099mec): the $2,000 thresholds, the new boxes, the 1099-K, corporation and attorney rules, due dates.
+- [Instructions for Forms 1099-MISC and 1099-NEC (Rev. April 2025)](https://www.irs.gov/pub/irs-prior/i1099mec--2025.pdf): the $600 thresholds for 2025 payments.
+- [Instructions for Form 1099-K (Rev. December 2026)](https://www.irs.gov/instructions/i1099k): payment-card and network payments are reported under section 6050W, not 6041.
+- [Publication 1099 (2026)](https://www.irs.gov/pub/irs-pdf/p1099.pdf): requesting a W-9, backup withholding at 24%, single-member LLC names.
+- [E-file information returns with IRIS](https://www.irs.gov/filing/e-file-information-returns-with-iris) (last reviewed 7 Oct 2026) and the [TY2025 template formatting guidelines](https://www.irs.gov/pub/irs-efile/ty2025-template-formatting-guidelines.zip) (updated 14 Jan 2026).
+- [IRIS FAQs](https://www.irs.gov/pub/irs-efile/info-returns-intake-system-faqs.pdf): 100 records per CSV, header validation. The [IRIS 101 Q&A of 5 Aug 2025](https://www.irs.gov/pub/irs-efile/irs-101-q-and-a-08052025.pdf) says files may hold 250 from TY25/PY26; 100 is within both.
+- [Filing Information Returns Electronically (FIRE)](https://www.irs.gov/e-file-providers/filing-information-returns-electronically-fire) (last reviewed 7 Aug 2026): FIRE's last day and IRIS-only from 1 January 2027.
+
+MIT licensed, by [agentwares](https://agentwares.vercel.app).

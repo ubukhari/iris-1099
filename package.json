@@ -1,0 +1,76 @@
+{
+  "name": "iris-1099",
+  "version": "0.1.0",
+  "description": "Who needs a 1099 for 2025 or 2026 payments, from your own QuickBooks, Xero or vendor-payments CSV: the $600 and $2,000 thresholds, card and PayPal amounts left to the 1099-K, corporations exempt except attorneys and medical, missing W-9s, and IRIS Taxpayer Portal CSVs in batches of 100. Local; TINs never leave the machine. Prepared for your review, not tax advice.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "iris-1099": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agentwares/iris-1099.git"
+  },
+  "homepage": "https://agentwares.vercel.app/1099",
+  "bugs": {
+    "url": "https://github.com/agentwares/iris-1099/issues"
+  },
+  "keywords": [
+    "1099",
+    "1099-nec",
+    "1099-misc",
+    "1099-k",
+    "iris",
+    "irs",
+    "w-9",
+    "quickbooks",
+    "xero",
+    "bookkeeping",
+    "tax",
+    "mcp",
+    "cli"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "record": "IRIS_1099_WRITE=1 vitest run src/distribution",
+    "icon": "node scripts/icon.mjs",
+    "pretest": "pnpm run build:dist",
+    "pretypecheck": "pnpm run build:dist",
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
+    "build:dist": "tsup"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^26.4.1",
+    "eslint": "^10.9.1",
+    "prettier": "^3.9.6",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.69.0",
+    "vitest": "^4.1.11"
+  },
+  "packageManager": "pnpm@9.15.9"
+}

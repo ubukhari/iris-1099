@@ -1,0 +1,17 @@
+{
+  "name": "iris-1099",
+  "description": "iris-1099, from inside Claude Code: who needs a 1099 for 2025 or 2026 payments, from your own QuickBooks, Xero or vendor-payments CSV, with the IRS sentence behind each decision, and IRIS Taxpayer Portal CSVs. Open source, local, no account; TINs never leave the machine.",
+  "owner": {
+    "name": "agentwares",
+    "url": "https://github.com/agentwares"
+  },
+  "plugins": [
+    {
+      "name": "iris-1099",
+      "source": "./plugins/iris-1099",
+      "description": "/iris-1099:iris-1099 runs `npx -y --allow-git=root github:agentwares/iris-1099` on a vendor-payments or 1099 report and explains who needs a 1099-NEC or 1099-MISC and why ($600 for 2025 payments, $2,000 for 2026; card and PayPal amounts on the 1099-K; corporations exempt except attorneys and medical), the missing W-9s, and the IRIS CSVs it wrote. Prepared for your review, not tax advice.",
+      "category": "productivity",
+      "tags": ["1099", "1099-nec", "iris", "irs", "w-9", "bookkeeping"]
+    }
+  ]
+}
